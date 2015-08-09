@@ -34,6 +34,16 @@ function _getString(prompt) {
 	return str;
 }
 
+function isTouchSupported() {
+	var msTouchEnabled = window.navigator.msMaxTouchPoints;
+	var generalTouchEnabled = "ontouchstart" in document.createElement("div");
+
+	if (msTouchEnabled || generalTouchEnabled) {
+		return true;
+	}
+	return false;
+}
+
 // </local functions>
 
 
@@ -189,11 +199,19 @@ $(function () {
 		snakeHead.newDir = newDir;
 	}
 	// bind mouse event
-	$(gameDiv).mousedown(function(evt){
-		if(evt.which !== 1) return;
-		var mouse = Util.getMouse(evt);
-		clickHandler(mouse);
-	});
+
+	if(isTouchSupported()){
+		gameDiv.addEventListener("touchstart", function(evt){
+			var mouse = Util.getMouse(evt.touches[0]);
+			clickHandler(mouse);
+		});
+	}else{
+		$(gameDiv).mousedown(function(evt){
+			if(evt.which !== 1) return;
+			var mouse = Util.getMouse(evt);
+			clickHandler(mouse);
+		});
+	}
 
 	function randomPlace(gameWidth, gameHeight){
 		return {

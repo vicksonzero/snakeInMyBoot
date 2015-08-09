@@ -1,6 +1,8 @@
 <html>
 <head>
-	<title>Touching Snake</title>
+	<meta property="og:image" content="http://dickson.md/lab/SnakeInMyBoot/preview.png" />
+	<meta property="og:description" content="Snake game on mobile, made for touch interface">
+	<title>Snake In My Boot!</title>
 
 	<link rel="stylesheet" type="text/css" href="css/reset.css">
 	<link rel="stylesheet" type="text/css" href="css/clearfix.css">
@@ -15,13 +17,18 @@
 		<div style="display:table; width:100%; height:100%">
 			<div style="display:table-cell;vertical-align:middle;">
 				<div style="margin:0 auto;">
-					<h1 id="titleLine">Touching Snake!</h1>
+					<h1 id="titleLine">Snake In My Boot!</h1>
 
 					<button type="button" id="startButton" onclick="gameStart();">Start!</button>
 					<button type="button" id="difficultyButton" onclick="changeDifficulty();">Difficulty: <span id="gameSpeedLevel"></span></button>
 
 					<div id="credits">
-						Touching Snake by Dickson Chui (<a href="dickson.md">dickson.md</a>) 2015-08-10
+						<p>
+							Tap the screen to turn the snake. Do not touch the wall or the snake's body.
+						</p>
+						<p>
+							Snake In My Boot! is created by Dickson Chui (<a href="http://dickson.md">dickson.md</a>) on 2015-08-10
+						</p>
 					</div>
 				</div>
 			</div>
