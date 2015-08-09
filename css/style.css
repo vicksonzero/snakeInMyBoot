@@ -1,0 +1,36 @@
+body{
+	overflow:hidden;
+}
+#game{
+	position:relative;
+	margin: 0 auto;
+	width:100%;
+	height:100%;
+	background-color: skyblue;
+	overflow:hidden;
+}
+#title{
+	position: absolute;
+	width:100%;
+	height:100%;
+	top: 0; left: 0;
+	font-size: 52px;
+	text-align: center;
+}
+#title h1{
+	margin: 10px;
+}
+#title button{
+	font-size: 32px;
+	width:30%;
+	line-height: 2em;
+}
+
+.note{
+	width: 100px; height: 100px;
+	background-color: beige;
+	border: solid lightgray thin;
+	position: absolute;
+	padding: 10px;
+	overflow-y: auto;
+}
