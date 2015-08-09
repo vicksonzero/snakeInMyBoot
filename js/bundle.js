@@ -186,6 +186,7 @@ $(function () {
 
 		screenSize(titleDiv, Config.boardRatio);
 		$(titleDiv).css("font-size", 52/500*gameDivSize.x+"px");
+		$("#title button").css("font-size", 22/500*gameDivSize.x+"px");
 	}
 
 	// bind windows resize to screenSize.js
@@ -330,7 +331,7 @@ $(function () {
 	function gameEnd(){
 		clearTimeout(loopID);
 		$("#titleLine").html("Game Over!");
-		$("#title>button").css("opacity",0.7);
+		$("#title button").css("opacity",0.7);
 		$(titleDiv).show();
 
 	}

@@ -26,6 +26,10 @@ body{
 	width:30%;
 	line-height: 2em;
 }
+#credits{
+	margin: 12px;
+	font-size: 16px;
+}
 
 .note{
 	width: 100px; height: 100px;
