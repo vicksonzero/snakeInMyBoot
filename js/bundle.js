@@ -110,7 +110,8 @@ module.exports = (function () {
 		},
 		boardRatio: 4/3,
 		padding: 1,
-		yellowCards: 1
+		yellowCards: 1,
+		speedLevels:[340, 270, 210, 160, 120, 90, 70, 60, 35]
 	};
 
 })();
@@ -136,6 +137,7 @@ var screenSize = require('./util/screenSize');
 var injectReqAnimFrame = require('./util/injectReqAnimFrame')();
 var Head = require('./head');
 var Body = require('./body');
+var Food = require('./food');
 
 // </includes>
 
@@ -168,7 +170,8 @@ $(function () {
 	var gameDivSize = {x:0,y:0};
 	var snakeHead = null;
 	var gameMetrics = {x:0,y:0};
-	var gameSpeed = 300;
+	var gameSpeedLevel = Math.floor(Config.speedLevels.length/2);
+	var gameSpeed = Config.speedLevels[gameSpeedLevel];
 	var map = [];
 
 	var renderID = -1;
@@ -194,7 +197,7 @@ $(function () {
 	function newMap() {
 		'use strict';
 		var map = [];
-		gameMetrics.x = 20;
+		gameMetrics.x = 16;
 		gameMetrics.y = Math.floor(gameMetrics.x / Config.boardRatio);
 
 		for (var i = 0; i < gameMetrics.y; i++) {
@@ -211,13 +214,26 @@ $(function () {
 	function gameReset(){
 		Head.resetInstanceList();
 		Body.resetInstanceList();
+		Food.resetInstanceList();
 		map = newMap();
 	}
 	// game set up
 	function setUp(){
 		gameReset();
-		snakeHead = Head.create(5,10, 5, 0, map);
+		snakeHead = Head.create(0,10, 5, 0, map);
 		snakeHead.onGameoverCallback = gameEnd;
+
+		var startLife = snakeHead.life;
+		for (var i = 0; i < startLife; i++) {
+			snakeHead.move(gameMetrics);
+			// move body parts
+			Body.all(function(element){
+				element.step();
+			});
+		}
+
+		var newFood = Food.create(0, 0, map);
+		newFood.move(gameMetrics);
 	}
 
 	function loop(){
@@ -225,9 +241,25 @@ $(function () {
 		loopID = setTimeout(loop, gameSpeed);
 		if(snakeHead.move(gameMetrics)){
 
+			// move body parts
 			Body.all(function(element){
 				element.step();
 			});
+
+			// check eating
+			Food.all(function(element){
+				// if eaten
+				if(snakeHead.x == element.x && snakeHead.y == element.y){
+
+					// increase life for Body and Head
+					Body.all(function(element){
+						element.life++;
+					});
+					snakeHead.life++;
+					// teleport food to next place
+					element.move(gameMetrics);
+				}
+			})
 		};
 
 	}
@@ -241,13 +273,12 @@ $(function () {
 		var boxSize = {x:0,y:0};
 		boxSize.x = gameDivSize.x / gameMetrics.x;
 		boxSize.y = gameDivSize.y / gameMetrics.y;
-		map.forEach(function(element, index, array){
-			element.forEach(function(element, index, array){
-				if(element === -1) return;
-				var body = Body.get(element);
-				if(body == null) return;
-				body.render(gameDiv, gameDivSize, boxSize, Config.padding);
-			});
+		Body.all(function(element){
+			element.render(gameDiv, gameDivSize, boxSize, Config.padding);
+		});
+
+		Food.all(function(element){
+			element.render(gameDiv, gameDivSize, boxSize, Config.padding);
 		});
 		if(snakeHead)snakeHead.render(gameDiv, gameDivSize, boxSize, Config.padding);
 	}
@@ -282,28 +313,219 @@ $(function () {
 		clickHandler(mouse);
 	});
 
+	function randomPlace(gameWidth, gameHeight){
+		return {
+			x: Math.floor(Math.random()*gameWidth),
+			y: Math.floor(Math.random()*gameHeight)
+		}
+	}
+
 	function gameStart(){
 		setUp();
 		$(titleDiv).hide();
 		loop();
 
 	}
-	window.gameStart = gameStart;
 
 	function gameEnd(){
 		clearTimeout(loopID);
+		$("#titleLine").html("Game Over!");
+		$("#title>button").css("opacity",0.7);
 		$(titleDiv).show();
 
 	}
 
+	function changeDifficulty(){
+		gameSpeedLevel = (++gameSpeedLevel)%Config.speedLevels.length;
+		gameSpeed = Config.speedLevels[gameSpeedLevel];
+		updateGameSpeedLevelLabel();
+	}
+	function updateGameSpeedLevelLabel(){
+		$("#gameSpeedLevel").html(gameSpeedLevel+1);
+	}
+
 	// <main>
 	//gameStart();
+	updateGameSpeedLevelLabel();
+	window.gameStart = gameStart;
+	window.changeDifficulty = changeDifficulty;
 
 });
 
 // </main>
 
-},{"./body":1,"./config":2,"./head":4,"./util/injectReqAnimFrame":5,"./util/screenSize":6,"./util/util":7,"jquery":8}],4:[function(require,module,exports){
+},{"./body":1,"./config":2,"./food":4,"./head":5,"./util/injectReqAnimFrame":6,"./util/screenSize":7,"./util/util":8,"jquery":9}],4:[function(require,module,exports){
+// include
+var Body = require('./body');
+var Config = require("./config");
+
+
+var dir2delta = [
+	{x:1,y:0},
+	{x:0,y:-1},
+	{x:-1,y:0},
+	{x:0,y:1}
+];
+// main
+module.exports = (function(){
+	//////////////////////////////
+	// class definition / utility
+	//////////////////////////////
+	function Food(){
+		this.x = 0;
+		this.y = 0;
+		this.map = null;
+
+		this.newDir = 0;
+		this.yellowCard = Config.yellowCards;
+
+		this.onGameoverCallback = function(){};
+	}
+
+	//////////////////////////////
+	// class functions / utility
+	//////////////////////////////
+	Food.instanceList = [];
+	Food.get = function get(index) {
+		return Food.instanceList[index];
+	};
+	Food.resetInstanceList = function resetInstanceList(){
+		Food.instanceList = [];
+	};
+	Food.create = function create(x, y, map){
+		var newBody = new Food();
+		newBody.x = x;
+		newBody.y = y;
+		newBody.map = map;
+
+		// class stuff
+		newBody.index = Food.instanceList.length;
+		Food.instanceList.push(newBody);
+
+		return newBody;
+	}
+	Food.all = function all(callback){
+		Food.instanceList.forEach(function(element, index, array){
+			if(element !== null){
+				callback(element);
+			}
+		},{});
+	};
+
+	//////////////////////////////
+	// prototype functions / utility
+	//////////////////////////////
+
+	var p = Food.prototype;
+
+	p.move = function move(gameMetrics) {
+		var randomFoodPlace;
+		do{
+			randomFoodPlace = randomPlace(gameMetrics);
+
+		}while(!this.canMoveThere(gameMetrics, this.map, randomFoodPlace.x, randomFoodPlace.y));
+		this.x = randomFoodPlace.x;
+		this.y = randomFoodPlace.y;
+
+	};
+
+	p.canMoveThere = function canMoveThere(gameMetrics, map2dArray, newX, newY) {
+
+		return (
+			newX >=0 &&
+			newX < gameMetrics.x &&
+			newY >=0 &&
+			newY < gameMetrics.y &&
+			(map2dArray[newY][newX] === -1)
+		);
+
+	};
+
+	p.updateOnMap = function updateOnMap(map2dArray) {
+		if(map2dArray[this.y][this.x] == -1){
+			map2dArray[this.y][this.x] = this.index;
+		}else{
+			throw ["map[", this.y, ",", this.x, "] is occupied"].join();
+		}
+	};
+
+	p.removeFromMap = function updateOnMap(map2dArray) {
+		map2dArray[this.y][this.x] = -1;
+	};
+
+	/**
+	 * render the snake body on canvas
+	 * @param  {canvas} canvas     canvas to draw on
+	 * @param  {x,y} screenSize    screen size on x and y axis
+	 * @param  {x,y} boxSize       size of the snake before padding
+	 * @param  {number} padding    amount of padding
+	 */
+	p.render = function render(canvas, screenSize, boxSize, padding) {
+		var ctx = canvas.getContext("2d");
+		ctx.fillStyle= (this.yellowCard < Config.yellowCards? "#FF0000": "#000000");
+		var xx = boxSize.x * this.x;
+		var yy = boxSize.y * this.y;
+		var ww = boxSize.x;
+		var hh = boxSize.y;
+
+		var dots = [];
+
+		dots.push({
+			xx: xx + ww/3 * 1 + padding,
+			yy: yy + hh/3 * 0 + padding,
+			ww: ww/3 - padding - padding,
+			hh: hh/3 - padding - padding
+		});
+
+		dots.push({
+			xx: xx + ww/3 * 0 + padding,
+			yy: yy + hh/3 * 1 + padding,
+			ww: ww/3 - padding - padding,
+			hh: hh/3 - padding - padding
+		});
+
+		dots.push({
+			xx: xx + ww/3 * 1 + padding,
+			yy: yy + hh/3 * 2 + padding,
+			ww: ww/3 - padding - padding,
+			hh: hh/3 - padding - padding
+		});
+
+		dots.push({
+			xx: xx + ww/3 * 2 + padding,
+			yy: yy + hh/3 * 1 + padding,
+			ww: ww/3 - padding - padding,
+			hh: hh/3 - padding - padding
+		});
+
+		dots.forEach(function(element, index, array){
+			ctx.fillRect(element.xx,element.yy,element.ww,element.hh);
+		},{});
+	};
+	p.getGlobalPosCenter = function getGlobalPosCenter(boxSize) {
+		var xx = boxSize.x * this.x;
+		var yy = boxSize.y * this.y;
+		var ww = boxSize.x;
+		var hh = boxSize.y;
+		return {
+			x: xx + ww/2,
+			y: yy + hh/2
+		};
+	};
+
+
+	function randomPlace(gameMetrics){
+		return {
+			x: Math.floor(Math.random()*gameMetrics.x),
+			y: Math.floor(Math.random()*gameMetrics.y)
+		}
+	}
+
+
+	return Food;
+})();
+
+},{"./body":1,"./config":2}],5:[function(require,module,exports){
 // include
 var Body = require('./body');
 var Config = require("./config");
@@ -456,7 +678,7 @@ module.exports = (function(){
 	return Head;
 })();
 
-},{"./body":1,"./config":2}],5:[function(require,module,exports){
+},{"./body":1,"./config":2}],6:[function(require,module,exports){
 
 module.exports = (function () {
 	/**
@@ -494,7 +716,7 @@ module.exports = (function () {
 	return injector;
 })();
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var $ = require("jquery");
 var config = require("../config");
 
@@ -529,7 +751,7 @@ module.exports = function resizeGameScreen(div,ratio){
 
 };
 
-},{"../config":2,"jquery":8}],7:[function(require,module,exports){
+},{"../config":2,"jquery":9}],8:[function(require,module,exports){
 //var $ = require("jquery");
 var Config = require("../config");
 module.exports = (function () {
@@ -590,7 +812,7 @@ module.exports = (function () {
 	return Util;
 })();
 
-},{"../config":2}],8:[function(require,module,exports){
+},{"../config":2}],9:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/

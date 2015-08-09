@@ -18,6 +18,7 @@ var screenSize = require('./util/screenSize');
 var injectReqAnimFrame = require('./util/injectReqAnimFrame')();
 var Head = require('./head');
 var Body = require('./body');
+var Food = require('./food');
 
 // </includes>
 
@@ -50,7 +51,8 @@ $(function () {
 	var gameDivSize = {x:0,y:0};
 	var snakeHead = null;
 	var gameMetrics = {x:0,y:0};
-	var gameSpeed = 300;
+	var gameSpeedLevel = Math.floor(Config.speedLevels.length/2);
+	var gameSpeed = Config.speedLevels[gameSpeedLevel];
 	var map = [];
 
 	var renderID = -1;
@@ -76,7 +78,7 @@ $(function () {
 	function newMap() {
 		'use strict';
 		var map = [];
-		gameMetrics.x = 20;
+		gameMetrics.x = 16;
 		gameMetrics.y = Math.floor(gameMetrics.x / Config.boardRatio);
 
 		for (var i = 0; i < gameMetrics.y; i++) {
@@ -93,13 +95,26 @@ $(function () {
 	function gameReset(){
 		Head.resetInstanceList();
 		Body.resetInstanceList();
+		Food.resetInstanceList();
 		map = newMap();
 	}
 	// game set up
 	function setUp(){
 		gameReset();
-		snakeHead = Head.create(5,10, 5, 0, map);
+		snakeHead = Head.create(0,10, 5, 0, map);
 		snakeHead.onGameoverCallback = gameEnd;
+
+		var startLife = snakeHead.life;
+		for (var i = 0; i < startLife; i++) {
+			snakeHead.move(gameMetrics);
+			// move body parts
+			Body.all(function(element){
+				element.step();
+			});
+		}
+
+		var newFood = Food.create(0, 0, map);
+		newFood.move(gameMetrics);
 	}
 
 	function loop(){
@@ -107,9 +122,25 @@ $(function () {
 		loopID = setTimeout(loop, gameSpeed);
 		if(snakeHead.move(gameMetrics)){
 
+			// move body parts
 			Body.all(function(element){
 				element.step();
 			});
+
+			// check eating
+			Food.all(function(element){
+				// if eaten
+				if(snakeHead.x == element.x && snakeHead.y == element.y){
+
+					// increase life for Body and Head
+					Body.all(function(element){
+						element.life++;
+					});
+					snakeHead.life++;
+					// teleport food to next place
+					element.move(gameMetrics);
+				}
+			})
 		};
 
 	}
@@ -123,13 +154,12 @@ $(function () {
 		var boxSize = {x:0,y:0};
 		boxSize.x = gameDivSize.x / gameMetrics.x;
 		boxSize.y = gameDivSize.y / gameMetrics.y;
-		map.forEach(function(element, index, array){
-			element.forEach(function(element, index, array){
-				if(element === -1) return;
-				var body = Body.get(element);
-				if(body == null) return;
-				body.render(gameDiv, gameDivSize, boxSize, Config.padding);
-			});
+		Body.all(function(element){
+			element.render(gameDiv, gameDivSize, boxSize, Config.padding);
+		});
+
+		Food.all(function(element){
+			element.render(gameDiv, gameDivSize, boxSize, Config.padding);
 		});
 		if(snakeHead)snakeHead.render(gameDiv, gameDivSize, boxSize, Config.padding);
 	}
@@ -164,22 +194,42 @@ $(function () {
 		clickHandler(mouse);
 	});
 
+	function randomPlace(gameWidth, gameHeight){
+		return {
+			x: Math.floor(Math.random()*gameWidth),
+			y: Math.floor(Math.random()*gameHeight)
+		}
+	}
+
 	function gameStart(){
 		setUp();
 		$(titleDiv).hide();
 		loop();
 
 	}
-	window.gameStart = gameStart;
 
 	function gameEnd(){
 		clearTimeout(loopID);
+		$("#titleLine").html("Game Over!");
+		$("#title>button").css("opacity",0.7);
 		$(titleDiv).show();
 
 	}
 
+	function changeDifficulty(){
+		gameSpeedLevel = (++gameSpeedLevel)%Config.speedLevels.length;
+		gameSpeed = Config.speedLevels[gameSpeedLevel];
+		updateGameSpeedLevelLabel();
+	}
+	function updateGameSpeedLevelLabel(){
+		$("#gameSpeedLevel").html(gameSpeedLevel+1);
+	}
+
 	// <main>
 	//gameStart();
+	updateGameSpeedLevelLabel();
+	window.gameStart = gameStart;
+	window.changeDifficulty = changeDifficulty;
 
 });
 
