@@ -25,6 +25,12 @@ module.exports = (function () {
 			"right": 39,
 			"space": 32,
 			"return": 13
+		},
+		readmeText:{
+			"snake":           "Tap the side of the snake to steer. Do not touch the wall or the snake's body.",
+			"clockwise":       "Tap the left/right screen to steer the snake clockwise/counterclockwise. Do not touch the wall or the snake's body.",
+			"gestureDiscrete": "Tap the screen to steer the snake. Do not touch the wall or the snake's body.",
+			"gestureContinue": "Tap the screen to steer the snake. Do not touch the wall or the snake's body."
 		}
 	};
 
