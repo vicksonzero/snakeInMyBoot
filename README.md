@@ -1,7 +1,7 @@
-Surfing board
+SnakeInMyBoot!
 =============
 
-Corkboard on the internet. Sticky notes synced in realtime
+Play snake in your mobile, with 1 finger
 
 How to start
 ------------
@@ -11,14 +11,12 @@ How to start
 	-	Go to `Releases` if there is a release, or
 	-	`git clone` the project.
 2.	open `index.html`
-	-	or run `npm start` in command line if you have node.js
 
-How to Use
-----------
+How to Play
+-----------
 
-| Button | Function      |
-|-------:|---------------|
-|      M | Create a note |
+Tap the screen to steer the snake.
+Do not touch the wall or its body.
 
 How to use the source
 ---------------------
@@ -36,14 +34,5 @@ How to use the source
 History
 -------
 
-###Pre-alpha
-
-###Incubation Stage
-
-####2015-02-20
-
--	Created jQuery-ui draggable notes
-
-####2015-02-11
-
--	Created universal starter package
+###2015-08-10
+Initial release
