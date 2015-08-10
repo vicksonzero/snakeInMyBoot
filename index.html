@@ -3,13 +3,14 @@
 	<!-- fb preview -->
 	<meta property="og:image" content="http://dickson.md/lab/SnakeInMyBoot/preview.png" />
 	<meta property="og:description" content="Snake game on mobile, made for touch interface">
-	
+
 	<!-- prevent zoom -->
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
 	<title>Snake In My Boot!</title>
 
 	<link rel="stylesheet" type="text/css" href="css/reset.css">
 	<link rel="stylesheet" type="text/css" href="css/clearfix.css">
+	<link rel="stylesheet" type="text/css" href="css/noselect.css">
 	<link rel="stylesheet" type="text/css" href="css/style.css">
 	<!-- bundle.js made by browserify. actual entry point is ./js/main.js -->
 	<script src="./js/bundle.js" type="text/javascript" charset="utf-8" ></script>
@@ -17,7 +18,7 @@
 <body>
 
 	<canvas id="game" width="300" height="300"></canvas>
-	<div id="title">
+	<div id="title" class="noselect">
 		<div style="display:table; width:100%; height:100%">
 			<div style="display:table-cell;vertical-align:middle;">
 				<div style="margin:0 auto;">
@@ -26,14 +27,15 @@
 					<button type="button" id="startButton" onclick="gameStart();">Start!</button>
 					<button type="button" id="difficultyButton" onclick="changeDifficulty();">Difficulty: <span id="gameSpeedLevel"></span></button>
 
-					<div id="credits">
-						<p>
+					<div id="footer">
+						<p id="message">
 							Tap the screen to steer the snake. Do not touch the wall or the snake's body.
 						</p>
-						<p>
+						<p id="credits">
 							Snake In My Boot! is created by Dickson Chui (<a href="http://dickson.md">dickson.md</a>) on 2015-08-10
 						</p>
 					</div>
+					<div class="shield" style="display:none;"></div>
 				</div>
 			</div>
 		</div>
