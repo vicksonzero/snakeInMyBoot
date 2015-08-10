@@ -19,6 +19,8 @@ var injectReqAnimFrame = require('./util/injectReqAnimFrame')();
 var Head = require('./head');
 var Body = require('./body');
 var Food = require('./food');
+var AddressBar = require('./util/addressBar');
+
 
 // </includes>
 
@@ -86,6 +88,12 @@ $(function () {
 	// id for game loop. used to stop the loop if necessary
 	var loopID = -1;
 
+	// addressbar parsing
+	var addressBar = new AddressBar(location.search);
+
+	// steerMode = snake, clockwise, gestureDiscrete, gestureContinue
+	var steerMode = addressBar.getValue("steerMode", "snake", false);
+
 	////////////////////////
 	// screensize problem //
 	////////////////////////
@@ -124,6 +132,7 @@ $(function () {
 	$(titleDiv).find("button").mousedown(function(evt){
 		evt.stopPropagation();
 	})
+	$("#message").html(Config.readmeText[steerMode]);
 
 	// creates a 2d array for the map
 	function newMap() {
@@ -260,6 +269,16 @@ $(function () {
 	/////////////////
 
 	function clickHandler(mousePoint){
+		if(steerMode == "snake"){
+			steerRelativeToSnake(mousePoint);
+		}else if(steerMode == "clockwise"){
+			steerClockwise(mousePoint);
+		}else if(steerMode == "snake"){
+			steerRelativeToSnake(mousePoint);
+		}
+	}
+
+	function steerRelativeToSnake(mousePoint){
 		//console.log(mousePoint);
 
 		// size of a body unit
@@ -286,6 +305,26 @@ $(function () {
 
 		// record new direction. old direcion will be updated in the coming tick
 		snakeHead.newDir = newDir;
+
+	}
+
+	function steerClockwise(mousePoint){
+		//console.log(mousePoint);
+
+		// direction the snake is facing
+		var dir = snakeHead.dir;
+
+		// calculate new direction based on side of screen
+		// if left side of screen
+		if(mousePoint.x < gameDivSize.x/2){
+			newDir = (dir+1)%4;
+		}else{
+			newDir = (dir+4-1)%4;
+		}
+
+		// record new direction. old direcion will be updated in the coming tick
+		snakeHead.newDir = newDir;
+
 	}
 
 	// bind mouse event. use touchstart for fingers and mousedown for mouse
