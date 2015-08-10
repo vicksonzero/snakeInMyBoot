@@ -78,6 +78,23 @@ module.exports = (function(){
 		var yy = boxSize.y * this.y + padding;
 		var ww = boxSize.x - padding - padding;
 		var hh = boxSize.y - padding - padding;
+
+		switch(this.dir){
+			case 0:
+				ww += padding + padding + padding;
+				break;
+			case 1:
+				hh += padding + padding + padding;
+				yy -= padding + padding + padding;
+				break;
+			case 2:
+				ww += padding + padding + padding;
+				xx -= padding + padding + padding;
+				break;
+			case 3:
+				hh += padding + padding + padding;
+				break;
+		}
 		ctx.fillRect(xx,yy,ww,hh);
 	};
 	p.step = function step() {
