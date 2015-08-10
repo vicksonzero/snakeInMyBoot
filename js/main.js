@@ -120,18 +120,34 @@ $(function () {
 	// initial run
 	screenResizeHandler();
 
-	// click and holding on title page hides the page
-	$(titleDiv)
-		.mousedown(function(evt){
-			$(titleDiv).animate({"opacity":0},300);
+	if(!isTouchSupported()){
+		// click and holding on title page hides the page
+		$(titleDiv)
+			.mousedown(function(evt){
+				$(titleDiv).animate({"opacity":0},300);
+			})
+			.mouseup(function(){
+				$(titleDiv).animate({"opacity":1},50);
+			});
+		// clicking on buttons won't
+		$(titleDiv).find("button").mousedown(function(evt){
+			evt.stopPropagation();
 		})
-		.mouseup(function(){
+	}else{
+
+		titleDiv.addEventListener("touchstart", function(evt){
+			$(titleDiv).animate({"opacity":0},300);
+		});
+		titleDiv.addEventListener("touchend", function(evt){
 			$(titleDiv).animate({"opacity":1},50);
 		});
-	// clicking on buttons won't
-	$(titleDiv).find("button").mousedown(function(evt){
-		evt.stopPropagation();
-	})
+		// clicking on buttons won't
+		$(titleDiv).find("button").each(function(index,element){
+			element.addEventListener("touchend", function(evt){
+				evt.stopPropagation();
+			});
+		});
+	}
 	$("#message").html(Config.readmeText[steerMode]);
 
 	// creates a 2d array for the map
@@ -370,6 +386,8 @@ $(function () {
 			case Config.keys.right:
 				if(dir == 1 || dir == 3) newDir = 0;
 				break;
+			default:
+				return;
 		}
 		snakeHead.newDir = newDir;
 	});
@@ -405,7 +423,7 @@ $(function () {
 		setTimeout(function(){
 			$("#title button").prop('disabled', false);
 		},1000);
-		$(titleDiv).show();
+		$(titleDiv).css({"opacity":1}).show();
 
 	}
 
