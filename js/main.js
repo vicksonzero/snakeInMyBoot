@@ -120,6 +120,11 @@ $(function () {
 	// initial run
 	screenResizeHandler();
 
+
+	// show hint for different control scheme
+	$("#message").html(Config.readmeText[steerMode]);
+
+	// handle touch vs mouse
 	if(!isTouchSupported()){
 		// click and holding on title page hides the page
 		$(titleDiv)
@@ -143,12 +148,11 @@ $(function () {
 		});
 		// clicking on buttons won't
 		$(titleDiv).find("button").each(function(index,element){
-			element.addEventListener("touchend", function(evt){
+			element.addEventListener("touchstart", function(evt){
 				evt.stopPropagation();
 			});
 		});
 	}
-	$("#message").html(Config.readmeText[steerMode]);
 
 	// creates a 2d array for the map
 	function newMap() {
@@ -420,8 +424,10 @@ $(function () {
 		$("#titleLine").html("Score: " + ((snakeHead.life - Config.startingLife) * (gameSpeedLevel+1)));
 
 		$("#title button").prop('disabled', true);
+		$("#title a").addClass("not-active");
 		setTimeout(function(){
 			$("#title button").prop('disabled', false);
+			$("#title a").removeClass("not-active");
 		},1000);
 		$(titleDiv).css({"opacity":1}).show();
 
