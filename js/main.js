@@ -123,10 +123,10 @@ $(function () {
 	// click and holding on title page hides the page
 	$(titleDiv)
 		.mousedown(function(evt){
-			$(titleDiv).css("opacity",0);
+			$(titleDiv).animate({"opacity":0},300);
 		})
 		.mouseup(function(){
-			$(titleDiv).css("opacity",1);
+			$(titleDiv).animate({"opacity":1},50);
 		});
 	// clicking on buttons won't
 	$(titleDiv).find("button").mousedown(function(evt){
