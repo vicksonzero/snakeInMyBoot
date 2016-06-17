@@ -3,6 +3,11 @@ SnakeInMyBoot!
 
 Play snake in your mobile, with 1 finger
 
+Play Here!
+----------
+
+http://vicksonzero.github.io/snakeInMyBoot 
+
 How to start
 ------------
 
